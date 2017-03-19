@@ -20,7 +20,7 @@ public class test {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        };
+        }
         System.out.println(string);
     }
 

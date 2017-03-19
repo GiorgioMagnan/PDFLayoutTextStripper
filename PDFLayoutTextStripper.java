@@ -66,7 +66,7 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
     public PDFLayoutTextStripper() throws IOException {
         super();
         this.previousTextPosition = null;
-        this.textLineList = new ArrayList<TextLine>();
+        this.textLineList = new ArrayList<>();
     }
     
     @Override
@@ -76,23 +76,23 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
             this.setCurrentPageWidth(pageRectangle.getWidth());
             super.processPage(page, content);
             this.previousTextPosition = null;
-            this.textLineList = new ArrayList<TextLine>();
+            this.textLineList = new ArrayList<>();
         }
     }
     
     @Override
     protected void writePage() throws IOException {
-        Vector<List<TextPosition>> charactersByArticle = super.getCharactersByArticle();
-        for( int i = 0; i < charactersByArticle.size(); i++) {
-           List<TextPosition> textList = charactersByArticle.get(i);
-           this.sortTextPositionList(textList);
+        Vector<List<TextPosition>> local_charactersByArticle = super.getCharactersByArticle();
+        for( int i = 0; i < local_charactersByArticle.size(); i++) {
+           List<TextPosition> textList = local_charactersByArticle.get(i);
+           sortTextPositionList(textList);
            this.iterateThroughTextList(textList.iterator()) ;
         }
         this.writeToOutputStream(this.getTextLineList());
     }
     
-    private void writeToOutputStream(final List<TextLine> textLineList) throws IOException {
-        for (TextLine textLine : textLineList) {
+    private void writeToOutputStream(final List<TextLine> local_textLineList) throws IOException {
+        for (TextLine textLine : local_textLineList) {
             char[] line = textLine.getLine().toCharArray();
             super.getOutput().write(line);
             super.getOutput().write('\n');
@@ -105,22 +105,21 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
      * TextPositionComparator class should implement Comparator<TextPosition> instead of Comparator
      */
     @SuppressWarnings("unchecked") 
-    private void sortTextPositionList(final List<TextPosition> textList) {
+    private static void sortTextPositionList(final List<TextPosition> textList) {
         TextPositionComparator comparator = new TextPositionComparator();
         Collections.sort(textList, comparator);
     }
     
-    private int computeAverageCharacterWidth(final List<TextPosition> textPositionList) {
+    /*private int computeAverageCharacterWidth(final List<TextPosition> textPositionList) {
         if (textPositionList.size() == 0) {
             return 0;
-        } else {
-            double averageWidth = 0.0;
-            for (TextPosition textPosition : textPositionList) {
-                averageWidth += textPosition.getWidthOfSpace();
-            }
-            return (int) Math.floor( averageWidth ) / textPositionList.size();
         }
-    }
+        double averageWidth = 0.0;
+        for (TextPosition textPosition : textPositionList) {
+            averageWidth += textPosition.getWidthOfSpace();
+        }
+        return (int) Math.floor( averageWidth ) / textPositionList.size();
+    }*/
     
     private void writeLine(final List<TextPosition> textPositionList) {
         if ( textPositionList.size() > 0 ) {
@@ -139,10 +138,10 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
     }
     
     private void iterateThroughTextList(Iterator<TextPosition> textIterator) {
-        List<TextPosition> textPositionList = new ArrayList<TextPosition>();
+        List<TextPosition> textPositionList = new ArrayList<>();
         
         while ( textIterator.hasNext() ) {
-            TextPosition textPosition = (TextPosition)textIterator.next();
+            TextPosition textPosition = textIterator.next();
             int numberOfNewLines = this.getNumberOfNewLinesFromPreviousTextPosition(textPosition);
             if ( numberOfNewLines == 0 ) {
                 textPositionList.add(textPosition);
@@ -167,22 +166,21 @@ public class PDFLayoutTextStripper extends PDFTextStripper {
     }
     
     private int getNumberOfNewLinesFromPreviousTextPosition(final TextPosition textPosition) {
-        TextPosition previousTextPosition = this.getPreviousTextPosition();
-        if ( previousTextPosition == null ) {
+        TextPosition local_previousTextPosition = this.getPreviousTextPosition();
+        if ( local_previousTextPosition == null ) {
             return 1;
         }
         
         double textYPosition = Math.round( textPosition.getTextPos().getYPosition() );
-        double previousTextYPosition = Math.round( previousTextPosition.getTextPos().getYPosition() );
+        double previousTextYPosition = Math.round( local_previousTextPosition.getTextPos().getYPosition() );
         
         if ( textYPosition < previousTextYPosition ) {
             double height = textPosition.getHeight();
             int numberOfLines = (int) (Math.floor( previousTextYPosition - textYPosition) / height );
             numberOfLines = Math.max(1, numberOfLines - 1); // exclude current new line
             return numberOfLines ; 
-        } else {
-            return 0;
         }
+        return 0;
     }
     
     private TextLine addNewLine() {
@@ -251,19 +249,18 @@ class TextLine {
      
         if ( !this.indexIsInBounds(index) ) {
             return -1;
-        } else {
-            if ( isCharacterPartOfPreviousWord && !isCharacterAtTheBeginningOfNewLine ) {
-                index = this.findMinimumIndexWithSpaceCharacterFromIndex(index);
-            } else if ( isCharacterCloseToPreviousWord ) {
-                if ( this.line.charAt(index) != SPACE_CHARACTER ) {
-                    index = index + 1;
-                } else {
-                    index = this.findMinimumIndexWithSpaceCharacterFromIndex(index) + 1;
-                }
-            }
-            index = this.getNextValidIndex(index, isCharacterPartOfPreviousWord);
-            return index;
         }
+        if ( isCharacterPartOfPreviousWord && !isCharacterAtTheBeginningOfNewLine ) {
+            index = this.findMinimumIndexWithSpaceCharacterFromIndex(index);
+        } else if ( isCharacterCloseToPreviousWord ) {
+            if ( this.line.charAt(index) != SPACE_CHARACTER ) {
+                index = index + 1;
+            } else {
+                index = this.findMinimumIndexWithSpaceCharacterFromIndex(index) + 1;
+            }
+        }
+        index = this.getNextValidIndex(index, isCharacterPartOfPreviousWord);
+        return index;
     }
     
     private boolean isSpaceCharacterAtIndex(int index) {
@@ -271,15 +268,15 @@ class TextLine {
     }
     
     private boolean isNewIndexGreaterThanLastIndex(int index) {
-        int lastIndex = this.getLastIndex();
-        return ( index > lastIndex );
+        int local_lastIndex = this.getLastIndex();
+        return ( index > local_lastIndex );
     }
     
     private int getNextValidIndex(int index, boolean isCharacterPartOfPreviousWord) {
         int nextValidIndex = index;
-        int lastIndex = this.getLastIndex();
+        int local_lastIndex = this.getLastIndex();
         if ( ! this.isNewIndexGreaterThanLastIndex(index) ) {
-            nextValidIndex = lastIndex + 1;
+            nextValidIndex = local_lastIndex + 1;
         }
         if ( !isCharacterPartOfPreviousWord && this.isSpaceCharacterAtIndex(index - 1) ) {
             nextValidIndex = nextValidIndex + 1; 
@@ -364,6 +361,7 @@ class Character {
         return this.isCharacterCloseToPreviousWord;
     }
     
+    @Override
     public String toString() {
         String toString = "";
         toString += index;
@@ -393,13 +391,13 @@ class CharacterFactory {
         this.firstCharacterOfLineFound = firstCharacterOfLineFound;
     }
     
-    public Character createCharacterFromTextPosition(final TextPosition textPosition, final TextPosition previousTextPosition) {
-        this.setPreviousTextPosition(previousTextPosition);
+    public Character createCharacterFromTextPosition(final TextPosition textPosition, final TextPosition local_previousTextPosition) {
+        this.setPreviousTextPosition(local_previousTextPosition);
         this.isCharacterPartOfPreviousWord = this.isCharacterPartOfPreviousWord(textPosition);
         this.isFirstCharacterOfAWord = this.isFirstCharacterOfAWord(textPosition);
         this.isCharacterAtTheBeginningOfNewLine = this.isCharacterAtTheBeginningOfNewLine(textPosition);
         this.isCharacterCloseToPreviousWord = this.isCharacterCloseToPreviousWord(textPosition);
-        char character = this.getCharacterFromTextPosition(textPosition);
+        char character = getCharacterFromTextPosition(textPosition);
         int index = (int)textPosition.getTextPos().getXPosition() / PDFLayoutTextStripper.OUTPUT_SPACE_CHARACTER_WIDTH_IN_PT;
         return new Character(character, 
                 index,
@@ -413,8 +411,8 @@ class CharacterFactory {
         if ( ! firstCharacterOfLineFound ) {
             return true;
         }
-        TextPosition previousTextPosition = this.getPreviousTextPosition();
-        double previousTextYPosition = previousTextPosition.getTextPos().getYPosition();
+        TextPosition local_previousTextPosition = this.getPreviousTextPosition();
+        double previousTextYPosition = local_previousTextPosition.getTextPos().getYPosition();
         return ( Math.round( textPosition.getTextPos().getYPosition() ) < Math.round(previousTextYPosition) ); 
     }
     
@@ -422,7 +420,7 @@ class CharacterFactory {
         if ( ! firstCharacterOfLineFound ) {
             return true;
         }
-        double numberOfSpaces = this.numberOfSpacesBetweenTwoCharacters(previousTextPosition, textPosition);
+        double numberOfSpaces = numberOfSpacesBetweenTwoCharacters(previousTextPosition, textPosition);
         return (numberOfSpaces > 1) || this.isCharacterAtTheBeginningOfNewLine(textPosition);
     }
     
@@ -430,21 +428,21 @@ class CharacterFactory {
         if ( ! firstCharacterOfLineFound ) {
             return false;
         }
-        double numberOfSpaces = this.numberOfSpacesBetweenTwoCharacters(previousTextPosition, textPosition);
+        double numberOfSpaces = numberOfSpacesBetweenTwoCharacters(previousTextPosition, textPosition);
         int widthOfSpace = (int) Math.ceil(textPosition.getWidthOfSpace());
         return (numberOfSpaces > 1 && numberOfSpaces <= widthOfSpace);
     }
     
     private boolean isCharacterPartOfPreviousWord(final TextPosition textPosition) {
-        TextPosition previousTextPosition = this.getPreviousTextPosition();
-        if ( previousTextPosition.getCharacter().equals(" ") ) {
+        TextPosition local_previousTextPosition = this.getPreviousTextPosition();
+        if ( local_previousTextPosition.getCharacter().equals(" ") ) {
             return false;
         }
-        double numberOfSpaces = this.numberOfSpacesBetweenTwoCharacters(previousTextPosition, textPosition);
+        double numberOfSpaces = numberOfSpacesBetweenTwoCharacters(local_previousTextPosition, textPosition);
         return (numberOfSpaces <= 1);
     }
     
-    private double numberOfSpacesBetweenTwoCharacters(final TextPosition textPosition1, final TextPosition textPosition2) {
+    private static double numberOfSpacesBetweenTwoCharacters(final TextPosition textPosition1, final TextPosition textPosition2) {
         double previousTextXPosition = textPosition1.getTextPos().getXPosition();
         double previousTextWidth = textPosition1.getWidth();
         double previousTextEndXPosition = (previousTextXPosition + previousTextWidth);
@@ -454,7 +452,7 @@ class CharacterFactory {
     
 
     
-    private char getCharacterFromTextPosition(final TextPosition textPosition) {
+    private static char getCharacterFromTextPosition(final TextPosition textPosition) {
         String string = textPosition.getCharacter();
         char character = string.charAt(0);
         return character;
