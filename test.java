@@ -7,13 +7,15 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 
 public class test {
-
-    public static void main(String[] args) {
+    private static PDDocument pdDocument;
+	private static FileInputStream fileInputStream;
+	public static void main(String[] args) {
         String string = null;
         try {
-            PDFParser pdfParser = new PDFParser(new FileInputStream("sample.pdf"));
+            fileInputStream = new FileInputStream("sample.pdf");
+			PDFParser pdfParser = new PDFParser(fileInputStream);
             pdfParser.parse();
-            PDDocument pdDocument = new PDDocument(pdfParser.getDocument());
+            pdDocument = new PDDocument(pdfParser.getDocument());
             PDFTextStripper pdfTextStripper = new PDFLayoutTextStripper();
             string = pdfTextStripper.getText(pdDocument);
         } catch (FileNotFoundException e) {
@@ -23,5 +25,4 @@ public class test {
         }
         System.out.println(string);
     }
-
 }
